@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>나의 포트폴리오</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a1a2e;
+    --accent: #e94560;
+    --accent2: #0f3460;
+    --bg: #f8f6f1;
+    --bg2: #ffffff;
+    --text: #1a1a2e;
+    --text-muted: #6b7280;
+    --border: #e5e0d8;
+    --card-bg: #ffffff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* ─── ADMIN OVERLAY ─── */
+  #admin-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(26,26,46,0.92);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .admin-box {
+    background: #fff; border-radius: 16px;
+    padding: 2.5rem 2rem; width: 340px; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .admin-box h2 { font-family: 'Noto Serif KR', serif; font-size: 1.3rem; margin-bottom: 0.4rem; color: var(--primary); }
+  .admin-box p { font-size: 0.82rem; color: #888; margin-bottom: 1.6rem; }
+  .admin-box input {
+    width: 100%; padding: 0.65rem 1rem; border: 1.5px solid #ddd;
+    border-radius: 8px; font-size: 0.9rem; margin-bottom: 0.75rem;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: border-color 0.2s;
+  }
+  .admin-box input:focus { outline: none; border-color: var(--accent); }
+  .admin-box button {
+    width: 100%; padding: 0.7rem; background: var(--accent);
+    color: #fff; border: none; border-radius: 8px;
+    font-size: 0.95rem; font-weight: 500; cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: opacity 0.2s;
+  }
+  .admin-box button:hover { opacity: 0.88; }
+  .admin-err { color: var(--accent); font-size: 0.82rem; margin-top: 0.5rem; display: none; }
+  .admin-skip { margin-top: 1rem; font-size: 0.8rem; color: #aaa; cursor: pointer; }
+  .admin-skip:hover { color: var(--accent); }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(248,246,241,0.95); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2.5rem; height: 60px;
+  }
+  .nav-logo { font-family: 'Noto Serif KR', serif; font-size: 1.1rem; font-weight: 700; color: var(--primary); }
+  .nav-links { display: flex; gap: 2rem; }
+  .nav-links a { text-decoration: none; font-size: 0.88rem; color: var(--text-muted); transition: color 0.2s; }
+  .nav-links a:hover { color: var(--accent); }
+  .admin-badge {
+    display: none; background: var(--accent); color: #fff;
+    font-size: 0.72rem; padding: 3px 10px; border-radius: 20px;
+    cursor: pointer; font-weight: 500;
+  }
+
+  /* ─── HERO ─── */
+  #hero {
+    min-height: 100vh; display: flex; align-items: center;
+    padding: 80px 2.5rem 3rem;
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 60%, #533483 100%);
+    position: relative; overflow: hidden;
+  }
+  #hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .hero-inner { max-width: 800px; position: relative; z-index: 1; }
+  .hero-tag { display: inline-block; background: rgba(233,69,96,0.2); color: #e94560; border: 1px solid rgba(233,69,96,0.4); border-radius: 20px; padding: 4px 14px; font-size: 0.78rem; margin-bottom: 1.2rem; letter-spacing: 0.05em; }
+  .hero-name { font-family: 'Noto Serif KR', serif; font-size: clamp(2.2rem, 6vw, 4rem); font-weight: 700; color: #fff; line-height: 1.2; margin-bottom: 1rem; }
+  .hero-name span { color: var(--accent); }
+  .hero-desc { font-size: 1rem; color: rgba(255,255,255,0.7); max-width: 520px; margin-bottom: 2rem; }
+  .hero-cta {
+    display: inline-block; background: var(--accent); color: #fff;
+    padding: 0.75rem 2rem; border-radius: 8px; text-decoration: none;
+    font-size: 0.9rem; font-weight: 500; transition: transform 0.2s, opacity 0.2s;
+  }
+  .hero-cta:hover { transform: translateY(-2px); opacity: 0.9; }
+
+  /* ─── MONKEY EASTER EGG ─── */
+  .monkey-section {
+    background: #fff3cd; border: 2px dashed #ffc107;
+    border-radius: 12px; padding: 1.2rem 1.5rem;
+    display: flex; align-items: center; gap: 1rem;
+    margin: 1.5rem 0; font-size: 0.85rem; color: #856404;
+  }
+  .monkey-section img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
+
+  /* ─── SECTION COMMONS ─── */
+  section { padding: 5rem 2.5rem; }
+  .section-inner { max-width: 900px; margin: 0 auto; }
+  .section-label { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 700; margin-bottom: 0.5rem; }
+  .section-title { font-family: 'Noto Serif KR', serif; font-size: 2rem; font-weight: 700; color: var(--primary); margin-bottom: 2.5rem; }
+  .section-divider { width: 40px; height: 3px; background: var(--accent); margin: 0.75rem 0 2rem; border-radius: 2px; }
+
+  /* ─── ABOUT ─── */
+  #about { background: var(--bg2); }
+  .about-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 3rem; align-items: start; }
+  .about-photo { width: 100%; aspect-ratio: 3/4; background: #eee; border-radius: 12px; overflow: hidden; position: relative; }
+  .about-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .about-photo-placeholder {
+    width: 100%; height: 100%; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; color: #bbb; font-size: 0.82rem; gap: 0.5rem;
+    background: #f5f5f5;
+  }
+  .about-info-row { display: flex; gap: 0.5rem; margin-bottom: 0.6rem; font-size: 0.88rem; }
+  .about-info-label { color: var(--text-muted); min-width: 70px; }
+  .about-bio { font-size: 0.95rem; line-height: 1.9; color: var(--text); margin-top: 1.2rem; }
+  .skill-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.2rem; }
+  .skill-tag { background: #f0eaff; color: #5b3fa5; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+
+  /* ─── ACTIVITIES ─── */
+  #activities { background: var(--bg); }
+  .activity-list { display: flex; flex-direction: column; gap: 1.5rem; }
+  .activity-card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.4rem 1.6rem;
+    border-left: 4px solid var(--accent);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .activity-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); transform: translateX(4px); }
+  .activity-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; }
+  .activity-title { font-size: 1.05rem; font-weight: 700; color: var(--primary); }
+  .activity-date { font-size: 0.78rem; color: var(--text-muted); background: #f3f4f6; padding: 3px 10px; border-radius: 20px; }
+  .activity-desc { margin-top: 0.6rem; font-size: 0.88rem; color: var(--text-muted); }
+
+  /* ─── PROJECTS ─── */
+  #projects { background: var(--bg2); }
+  .project-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; }
+  .project-card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .project-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.1); transform: translateY(-4px); }
+  .project-thumb { aspect-ratio: 16/9; background: #eee; overflow: hidden; position: relative; }
+  .project-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .project-thumb-placeholder {
+    width: 100%; height: 100%; display: flex; align-items: center;
+    justify-content: center; color: #bbb; font-size: 0.82rem;
+    background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+  }
+  .project-body { padding: 1.2rem; }
+  .project-tag { font-size: 0.72rem; color: var(--accent); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .project-name { font-size: 1rem; font-weight: 700; color: var(--primary); margin-bottom: 0.4rem; }
+  .project-desc { font-size: 0.83rem; color: var(--text-muted); }
+  .project-tech { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.8rem; }
+  .tech-chip { background: #f3f4f6; color: #555; font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; }
+
+  /* ─── MEDIA (사진/영상) ─── */
+  #media { background: var(--bg); }
+  .media-tabs { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; display: inline-flex; margin-bottom: 2rem; }
+  .media-tab { padding: 0.5rem 1.4rem; font-size: 0.85rem; cursor: pointer; background: transparent; border: none; font-family: 'Noto Sans KR', sans-serif; transition: background 0.2s; color: var(--text-muted); }
+  .media-tab.active { background: var(--accent); color: #fff; font-weight: 500; }
+  .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+  .photo-slot {
+    aspect-ratio: 1; background: #eee; border-radius: 10px;
+    overflow: hidden; position: relative; cursor: pointer;
+    border: 2px dashed var(--border); transition: border-color 0.2s;
+  }
+  .photo-slot:hover { border-color: var(--accent); }
+  .photo-slot img { width: 100%; height: 100%; object-fit: cover; display: none; }
+  .photo-slot-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #bbb; font-size: 0.78rem; gap: 0.4rem; }
+  .photo-slot input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+  .video-slot {
+    background: #1a1a2e; border-radius: 12px; overflow: hidden;
+    aspect-ratio: 16/9; position: relative; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .video-slot video { width: 100%; height: 100%; object-fit: cover; display: none; }
+  .video-slot-label { color: rgba(255,255,255,0.5); font-size: 0.82rem; text-align: center; z-index: 1; }
+  .video-slot input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .media-panel { display: none; }
+  .media-panel.active { display: block; }
+
+  /* ─── CONTACT ─── */
+  #contact { background: var(--primary); color: #fff; }
+  #contact .section-label { color: #e94560; }
+  #contact .section-title { color: #fff; }
+  .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
+  .contact-item { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+  .contact-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.08); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+  .contact-label { font-size: 0.78rem; color: rgba(255,255,255,0.5); margin-bottom: 0.2rem; }
+  .contact-value { font-size: 0.95rem; color: #fff; }
+  .contact-form { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 1.5rem; }
+  .contact-form input, .contact-form textarea {
+    width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px; padding: 0.7rem 1rem; color: #fff;
+    font-family: 'Noto Sans KR', sans-serif; font-size: 0.88rem;
+    margin-bottom: 0.8rem; resize: none; transition: border-color 0.2s;
+  }
+  .contact-form input::placeholder, .contact-form textarea::placeholder { color: rgba(255,255,255,0.35); }
+  .contact-form input:focus, .contact-form textarea:focus { outline: none; border-color: var(--accent); }
+  .contact-form button {
+    background: var(--accent); color: #fff; border: none; border-radius: 8px;
+    padding: 0.7rem 1.8rem; font-size: 0.9rem; font-weight: 500; cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif; transition: opacity 0.2s;
+  }
+  .contact-form button:hover { opacity: 0.88; }
+
+  /* ─── ADMIN PANEL ─── */
+  #admin-panel {
+    display: none; position: fixed; top: 60px; right: 0; bottom: 0;
+    width: 340px; background: #fff; border-left: 1px solid var(--border);
+    z-index: 200; overflow-y: auto; padding: 1.5rem;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+  }
+  #admin-panel h3 { font-family: 'Noto Serif KR', serif; font-size: 1rem; margin-bottom: 1.2rem; color: var(--primary); }
+  .panel-section { margin-bottom: 1.8rem; border-bottom: 1px solid var(--border); padding-bottom: 1.8rem; }
+  .panel-section:last-child { border-bottom: none; }
+  .panel-section h4 { font-size: 0.82rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.8rem; }
+  .panel-section label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem; }
+  .panel-section input, .panel-section textarea {
+    width: 100%; border: 1px solid var(--border); border-radius: 6px;
+    padding: 0.55rem 0.75rem; font-size: 0.83rem;
+    font-family: 'Noto Sans KR', sans-serif; margin-bottom: 0.8rem;
+    transition: border-color 0.2s;
+  }
+  .panel-section input:focus, .panel-section textarea:focus { outline: none; border-color: var(--accent); }
+  .panel-section textarea { resize: vertical; min-height: 80px; }
+  .panel-btn { background: var(--primary); color: #fff; border: none; border-radius: 6px; padding: 0.55rem 1.2rem; font-size: 0.83rem; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; margin-right: 0.5rem; }
+  .panel-btn:hover { opacity: 0.85; }
+  .panel-btn.danger { background: var(--accent); }
+  .panel-btn.secondary { background: transparent; color: var(--primary); border: 1px solid var(--border); }
+
+  /* ─── FOOTER ─── */
+  footer { background: #111; color: rgba(255,255,255,0.4); text-align: center; padding: 1.5rem; font-size: 0.78rem; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 640px) {
+    nav { padding: 0 1rem; }
+    .nav-links { gap: 1rem; }
+    section { padding: 3.5rem 1.2rem; }
+    .about-grid { grid-template-columns: 1fr; }
+    .contact-grid { grid-template-columns: 1fr; }
+    #admin-panel { width: 100%; }
+  }
+
+  /* ─── EDITABLE HIGHLIGHT ─── */
+  .admin-mode [contenteditable="true"] {
+    outline: 2px dashed rgba(233,69,96,0.4); border-radius: 4px;
+    transition: outline 0.2s; min-width: 20px; display: inline-block;
+  }
+  .admin-mode [contenteditable="true"]:focus { outline: 2px solid var(--accent); background: rgba(233,69,96,0.05); }
+</style>
+</head>
+<body>
+
+<!-- ─── ADMIN LOGIN OVERLAY ─── -->
+<div id="admin-overlay">
+  <div class="admin-box">
+    <h2>🔐 관리자 로그인</h2>
+    <p>포트폴리오를 수정하려면 로그인하세요.<br>방문자로 둘러보려면 아래 링크를 클릭하세요.</p>
+    <input type="text" id="admin-id" placeholder="아이디" autocomplete="off">
+    <input type="password" id="admin-pw" placeholder="비밀번호">
+    <button onclick="tryAdminLogin()">로그인</button>
+    <div class="admin-err" id="admin-err">아이디 또는 비밀번호가 틀렸습니다.</div>
+    <div class="admin-skip" onclick="skipLogin()">방문자로 둘러보기 →</div>
+  </div>
+</div>
+
+<!-- ─── NAVIGATION ─── -->
+<nav>
+  <div class="nav-logo" id="nav-name">내 이름</div>
+  <div class="nav-links">
+    <a href="#about">자기소개</a>
+    <a href="#activities">활동</a>
+    <a href="#projects">프로젝트</a>
+    <a href="#media">작품/영상</a>
+    <a href="#contact">연락처</a>
+  </div>
+  <div class="admin-badge" id="admin-badge" onclick="togglePanel()">✏️ 관리자 모드</div>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section id="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">📚 전자융합과 · 포트폴리오</div>
+    <h1 class="hero-name">안녕하세요,<br>저는 <span id="hero-name-text">이름을 입력하세요</span>입니다.</h1>
+    <p class="hero-desc" id="hero-desc-text">전자융합과에서 전자회로, 디지털 논리회로, 로봇 소프트웨어 개발을 공부하고 있습니다. 제 포트폴리오를 소개합니다.</p>
+    <a href="#about" class="hero-cta">포트폴리오 보기</a>
+  </div>
+</section>
+
+<!-- ─── ABOUT ─── -->
+<section id="about">
+  <div class="section-inner">
+    <div class="section-label">About Me</div>
+    <h2 class="section-title">자기소개</h2>
+    <div class="about-grid">
+      <div>
+        <div class="about-photo" id="about-photo-wrap">
+          <div class="about-photo-placeholder" id="about-placeholder">
+            <span style="font-size:2rem">👤</span>
+            <span>프로필 사진</span>
+            <span style="font-size:0.72rem; color:#ccc">(관리자 모드에서 업로드)</span>
+          </div>
+          <img id="about-photo-img" style="display:none">
+          <input type="file" id="about-photo-input" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;display:none" onchange="previewPhoto(this,'about-photo-img','about-placeholder')">
+        </div>
+      </div>
+      <div>
+        <div class="about-info-row"><span class="about-info-label">이름</span><span id="info-name" contenteditable="false">홍길동</span></div>
+        <div class="about-info-row"><span class="about-info-label">학교</span><span id="info-school" contenteditable="false">○○전자고등학교</span></div>
+        <div class="about-info-row"><span class="about-info-label">학과</span><span id="info-major" contenteditable="false">전자융합과</span></div>
+        <div class="about-info-row"><span class="about-info-label">학년</span><span id="info-grade" contenteditable="false">3학년</span></div>
+        <div class="about-info-row"><span class="about-info-label">취업목표</span><span id="info-goal" contenteditable="false">반도체 제조 분야</span></div>
+
+        <!-- MONKEY EASTER EGG -->
+        <div class="monkey-section">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Macaca_fuscata_fuscata1.jpg/220px-Macaca_fuscata_fuscata1.jpg" alt="원숭이" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22><rect width=%2260%22 height=%2260%22 rx=%2230%22 fill=%22%23f0c040%22/><text x=%2230%22 y=%2240%22 font-size=%2230%22 text-anchor=%22middle%22>🐒</text></svg>'">
+          <div>
+            <strong>🐒 PRD 프롬프트 이스터에그!</strong><br>
+            <span style="font-size:0.78rem">이 원숭이는 "(대입 또는 취업)" 텍스트가 수정되지 않은 채 들어와서 나타났어요. 취업/대입 중 하나로 바꾸면 사라집니다!</span>
+          </div>
+        </div>
+
+        <p class="about-bio" id="about-bio" contenteditable="false">전자융합과에서 Altino 로봇 프로그래밍(IDLE), Fusion 360 3D 모델링, 전기회로, 디지털 논리회로, 로봇 소프트웨어 개발, 가전제품 시스템 소프트웨어 등을 이수했습니다. 직접 손으로 만들고 문제를 해결하는 과정에서 보람을 느끼며, 제조업 현장에서 기술을 발휘하고 싶습니다.</p>
+        <div class="skill-tags" id="skill-tags-area">
+          <span class="skill-tag">Altino 로봇</span>
+          <span class="skill-tag">Fusion 360</span>
+          <span class="skill-tag">디지털 논리회로</span>
+          <span class="skill-tag">전기회로</span>
+          <span class="skill-tag">Python(IDLE)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── ACTIVITIES ─── -->
+<section id="activities">
+  <div class="section-inner">
+    <div class="section-label">Activities</div>
+    <h2 class="section-title">주요 교내외 활동</h2>
+    <div class="activity-list" id="activity-list">
+      <div class="activity-card">
+        <div class="activity-header">
+          <span class="activity-title">Altino 로봇 프로그래밍 실습</span>
+          <span class="activity-date">교내 · 2023</span>
+        </div>
+        <p class="activity-desc">IDLE을 활용해 Altino 로봇을 직접 프로그래밍하고 자율주행 알고리즘을 구현했습니다.</p>
+      </div>
+      <div class="activity-card">
+        <div class="activity-header">
+          <span class="activity-title">Fusion 360 3D 모델링 프로젝트</span>
+          <span class="activity-date">교내 · 2023</span>
+        </div>
+        <p class="activity-desc">Fusion 360을 이용해 기계 부품을 3D 설계하고 출력하는 프로젝트를 진행했습니다.</p>
+      </div>
+      <div class="activity-card">
+        <div class="activity-header">
+          <span class="activity-title">활동명을 여기에 입력하세요</span>
+          <span class="activity-date">교외 · 2024</span>
+        </div>
+        <p class="activity-desc">활동 내용을 입력하세요. 관리자 모드에서 편집할 수 있습니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PROJECTS ─── -->
+<section id="projects">
+  <div class="section-inner">
+    <div class="section-label">Projects</div>
+    <h2 class="section-title">프로젝트 경험</h2>
+    <div class="project-grid" id="project-grid">
+      <div class="project-card">
+        <div class="project-thumb">
+          <div class="project-thumb-placeholder" id="proj1-placeholder">📷 프로젝트 사진</div>
+          <img id="proj1-img" style="display:none">
+          <input type="file" id="proj1-file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;display:none" onchange="previewPhoto(this,'proj1-img','proj1-placeholder')">
+        </div>
+        <div class="project-body">
+          <div class="project-tag">로봇 소프트웨어</div>
+          <div class="project-name" id="proj1-name" contenteditable="false">Altino 자율주행 로봇</div>
+          <div class="project-desc" id="proj1-desc" contenteditable="false">IDLE을 사용하여 초음파 센서 기반 자율주행 알고리즘을 구현한 프로젝트입니다.</div>
+          <div class="project-tech"><span class="tech-chip">Python</span><span class="tech-chip">IDLE</span><span class="tech-chip">Altino</span></div>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-thumb">
+          <div class="project-thumb-placeholder" id="proj2-placeholder">📷 프로젝트 사진</div>
+          <img id="proj2-img" style="display:none">
+          <input type="file" id="proj2-file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;display:none" onchange="previewPhoto(this,'proj2-img','proj2-placeholder')">
+        </div>
+        <div class="project-body">
+          <div class="project-tag">3D 모델링</div>
+          <div class="project-name" id="proj2-name" contenteditable="false">Fusion 360 부품 설계</div>
+          <div class="project-desc" id="proj2-desc" contenteditable="false">기계 부품을 3D 모델링하고 도면을 작성하여 실제 출력까지 진행한 프로젝트입니다.</div>
+          <div class="project-tech"><span class="tech-chip">Fusion 360</span><span class="tech-chip">3D 프린팅</span></div>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-thumb">
+          <div class="project-thumb-placeholder" id="proj3-placeholder">📷 프로젝트 사진</div>
+          <img id="proj3-img" style="display:none">
+          <input type="file" id="proj3-file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;display:none" onchange="previewPhoto(this,'proj3-img','proj3-placeholder')">
+        </div>
+        <div class="project-body">
+          <div class="project-tag">회로 설계</div>
+          <div class="project-name" id="proj3-name" contenteditable="false">프로젝트 이름 입력</div>
+          <div class="project-desc" id="proj3-desc" contenteditable="false">프로젝트 설명을 입력하세요.</div>
+          <div class="project-tech"><span class="tech-chip">기술 스택</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── MEDIA ─── -->
+<section id="media">
+  <div class="section-inner">
+    <div class="section-label">Gallery</div>
+    <h2 class="section-title">작품 사진 &amp; 영상</h2>
+    <div class="media-tabs">
+      <button class="media-tab active" onclick="switchTab('photos')">📷 작품 사진</button>
+      <button class="media-tab" onclick="switchTab('videos')">🎬 영상</button>
+    </div>
+    <div class="media-panel active" id="panel-photos">
+      <div class="photo-grid" id="photo-grid">
+        <!-- 6 photo slots -->
+      </div>
+    </div>
+    <div class="media-panel" id="panel-videos">
+      <div class="video-grid" id="video-grid">
+        <!-- 3 video slots -->
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CONTACT ─── -->
+<section id="contact">
+  <div class="section-inner">
+    <div class="section-label">Contact</div>
+    <h2 class="section-title">연락처</h2>
+    <div class="contact-grid">
+      <div>
+        <div class="contact-item">
+          <div class="contact-icon">📧</div>
+          <div><div class="contact-label">이메일</div><div class="contact-value" id="contact-email" contenteditable="false">example@email.com</div></div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">📱</div>
+          <div><div class="contact-label">전화번호</div><div class="contact-value" id="contact-phone" contenteditable="false">010-0000-0000</div></div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">🏫</div>
+          <div><div class="contact-label">학교/학과</div><div class="contact-value" id="contact-school" contenteditable="false">○○전자고등학교 전자융합과</div></div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">🔗</div>
+          <div><div class="contact-label">GitHub / SNS</div><div class="contact-value" id="contact-link" contenteditable="false">github.com/username</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="contact-form">
+          <input type="text" placeholder="성함" id="msg-name">
+          <input type="email" placeholder="이메일" id="msg-email">
+          <textarea rows="4" placeholder="메시지를 남겨주세요..." id="msg-body"></textarea>
+          <button onclick="sendMsg()">메시지 보내기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p id="footer-text">© 2025 포트폴리오. All rights reserved.</p>
+</footer>
+
+<!-- ─── ADMIN SIDE PANEL ─── -->
+<div id="admin-panel">
+  <h3>✏️ 관리자 편집 패널</h3>
+
+  <div class="panel-section">
+    <h4>기본 정보</h4>
+    <label>이름</label>
+    <input type="text" id="p-name" placeholder="홍길동" oninput="syncField('info-name',this.value);syncField('nav-name',this.value);document.getElementById('hero-name-text').textContent=this.value||'이름을 입력하세요'">
+    <label>학교</label>
+    <input type="text" id="p-school" oninput="syncField('info-school',this.value)">
+    <label>학과</label>
+    <input type="text" id="p-major" oninput="syncField('info-major',this.value)">
+    <label>학년</label>
+    <input type="text" id="p-grade" oninput="syncField('info-grade',this.value)">
+    <label>목표 직종</label>
+    <input type="text" id="p-goal" oninput="syncField('info-goal',this.value)">
+  </div>
+
+  <div class="panel-section">
+    <h4>자기소개</h4>
+    <label>소개 문구 (히어로)</label>
+    <textarea id="p-herodesc" oninput="document.getElementById('hero-desc-text').textContent=this.value"></textarea>
+    <label>상세 자기소개</label>
+    <textarea id="p-bio" oninput="document.getElementById('about-bio').textContent=this.value"></textarea>
+  </div>
+
+  <div class="panel-section">
+    <h4>프로필 사진</h4>
+    <label>사진 업로드</label>
+    <button class="panel-btn" onclick="document.getElementById('about-photo-input').click()">사진 선택</button>
+  </div>
+
+  <div class="panel-section">
+    <h4>연락처</h4>
+    <label>이메일</label>
+    <input type="text" id="p-email" oninput="syncField('contact-email',this.value)">
+    <label>전화번호</label>
+    <input type="text" id="p-phone" oninput="syncField('contact-phone',this.value)">
+    <label>학교/학과</label>
+    <input type="text" id="p-cschool" oninput="syncField('contact-school',this.value)">
+    <label>GitHub / SNS</label>
+    <input type="text" id="p-link" oninput="syncField('contact-link',this.value)">
+  </div>
+
+  <div class="panel-section">
+    <h4>프로젝트 사진 업로드</h4>
+    <label>프로젝트 1</label>
+    <button class="panel-btn" onclick="document.getElementById('proj1-file').click()">사진 선택</button>
+    <label style="margin-top:0.5rem">프로젝트 2</label>
+    <button class="panel-btn" onclick="document.getElementById('proj2-file').click()">사진 선택</button>
+    <label style="margin-top:0.5rem">프로젝트 3</label>
+    <button class="panel-btn" onclick="document.getElementById('proj3-file').click()">사진 선택</button>
+  </div>
+
+  <div class="panel-section">
+    <h4>작품 사진 업로드</h4>
+    <div id="panel-photo-btns"></div>
+  </div>
+
+  <div class="panel-section">
+    <h4>영상 업로드</h4>
+    <div id="panel-video-btns"></div>
+  </div>
+
+  <div class="panel-section">
+    <h4>저장 / 초기화</h4>
+    <button class="panel-btn" onclick="saveData()">💾 저장</button>
+    <button class="panel-btn secondary" onclick="loadData()">↩ 불러오기</button>
+    <button class="panel-btn danger" onclick="logout()">로그아웃</button>
+  </div>
+</div>
+
+<script>
+const ADMIN_ID = 'qwer1234';
+const ADMIN_PW = 'qwer1234';
+let isAdmin = false;
+
+function tryAdminLogin() {
+  const id = document.getElementById('admin-id').value;
+  const pw = document.getElementById('admin-pw').value;
+  if (id === ADMIN_ID && pw === ADMIN_PW) {
+    document.getElementById('admin-overlay').style.display = 'none';
+    enableAdmin();
+  } else {
+    document.getElementById('admin-err').style.display = 'block';
+  }
+}
+
+document.getElementById('admin-pw').addEventListener('keydown', e => {
+  if (e.key === 'Enter') tryAdminLogin();
+});
+
+function skipLogin() {
+  document.getElementById('admin-overlay').style.display = 'none';
+}
+
+function enableAdmin() {
+  isAdmin = true;
+  document.body.classList.add('admin-mode');
+  document.getElementById('admin-badge').style.display = 'inline-block';
+  document.getElementById('admin-panel').style.display = 'block';
+  document.getElementById('about-photo-input').style.display = 'block';
+  ['proj1-file','proj2-file','proj3-file'].forEach(id => document.getElementById(id).style.display = 'block');
+  document.querySelectorAll('[contenteditable]').forEach(el => el.setAttribute('contenteditable','true'));
+  refreshMediaSlots();
+  loadData();
+}
+
+function logout() {
+  isAdmin = false;
+  document.body.classList.remove('admin-mode');
+  document.getElementById('admin-badge').style.display = 'none';
+  document.getElementById('admin-panel').style.display = 'none';
+  document.querySelectorAll('[contenteditable]').forEach(el => el.setAttribute('contenteditable','false'));
+}
+
+function togglePanel() {
+  const p = document.getElementById('admin-panel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+
+function syncField(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val || el.getAttribute('placeholder') || '';
+}
+
+function previewPhoto(input, imgId, placeholderId) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById(imgId);
+    img.src = e.target.result;
+    img.style.display = 'block';
+    const ph = document.getElementById(placeholderId);
+    if (ph) ph.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─── MEDIA SLOTS ───
+const PHOTO_COUNT = 6;
+const VIDEO_COUNT = 3;
+
+function buildMediaSlots() {
+  const pg = document.getElementById('photo-grid');
+  pg.innerHTML = '';
+  for (let i = 0; i < PHOTO_COUNT; i++) {
+    pg.innerHTML += `
+      <div class="photo-slot" id="photo-slot-${i}">
+        <div class="photo-slot-label" id="photo-label-${i}">
+          <span style="font-size:1.5rem">🖼</span>
+          <span>사진 ${i+1}</span>
+        </div>
+        <img id="photo-img-${i}" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0">
+        <input type="file" id="photo-file-${i}" accept="image/*" style="display:none;position:absolute;inset:0;opacity:0;cursor:pointer" onchange="previewSlotPhoto(${i})">
+      </div>`;
+  }
+  const vg = document.getElementById('video-grid');
+  vg.innerHTML = '';
+  for (let i = 0; i < VIDEO_COUNT; i++) {
+    vg.innerHTML += `
+      <div class="video-slot" id="video-slot-${i}">
+        <div class="video-slot-label" id="video-label-${i}">
+          <div style="font-size:2rem">▶</div>
+          <div>영상 ${i+1}</div>
+        </div>
+        <video id="video-el-${i}" controls style="display:none;width:100%;height:100%;position:absolute;inset:0"></video>
+        <input type="file" id="video-file-${i}" accept="video/*" style="display:none;position:absolute;inset:0;opacity:0;cursor:pointer" onchange="previewSlotVideo(${i})">
+      </div>`;
+  }
+  buildPanelBtns();
+}
+
+function refreshMediaSlots() {
+  if (!isAdmin) return;
+  for (let i = 0; i < PHOTO_COUNT; i++) document.getElementById(`photo-file-${i}`).style.display = 'block';
+  for (let i = 0; i < VIDEO_COUNT; i++) document.getElementById(`video-file-${i}`).style.display = 'block';
+}
+
+function buildPanelBtns() {
+  const pb = document.getElementById('panel-photo-btns');
+  pb.innerHTML = '';
+  for (let i = 0; i < PHOTO_COUNT; i++) {
+    pb.innerHTML += `<button class="panel-btn" style="margin-bottom:0.4rem" onclick="document.getElementById('photo-file-${i}').click()">사진 ${i+1} 선택</button>`;
+  }
+  const vb = document.getElementById('panel-video-btns');
+  vb.innerHTML = '';
+  for (let i = 0; i < VIDEO_COUNT; i++) {
+    vb.innerHTML += `<button class="panel-btn" style="margin-bottom:0.4rem" onclick="document.getElementById('video-file-${i}').click()">영상 ${i+1} 선택</button>`;
+  }
+}
+
+function previewSlotPhoto(i) {
+  const file = document.getElementById(`photo-file-${i}`).files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById(`photo-img-${i}`);
+    img.src = e.target.result;
+    img.style.display = 'block';
+    document.getElementById(`photo-label-${i}`).style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function previewSlotVideo(i) {
+  const file = document.getElementById(`video-file-${i}`).files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const vid = document.getElementById(`video-el-${i}`);
+  vid.src = url;
+  vid.style.display = 'block';
+  document.getElementById(`video-label-${i}`).style.display = 'none';
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.media-tab').forEach((t,i) => {
+    t.classList.toggle('active', (i===0&&tab==='photos')||(i===1&&tab==='videos'));
+  });
+  document.getElementById('panel-photos').classList.toggle('active', tab==='photos');
+  document.getElementById('panel-videos').classList.toggle('active', tab==='videos');
+}
+
+// ─── SAVE / LOAD ───
+function saveData() {
+  const data = {
+    name: document.getElementById('p-name').value,
+    school: document.getElementById('p-school').value,
+    major: document.getElementById('p-major').value,
+    grade: document.getElementById('p-grade').value,
+    goal: document.getElementById('p-goal').value,
+    herodesc: document.getElementById('p-herodesc').value,
+    bio: document.getElementById('p-bio').value,
+    email: document.getElementById('p-email').value,
+    phone: document.getElementById('p-phone').value,
+    cschool: document.getElementById('p-cschool').value,
+    link: document.getElementById('p-link').value,
+  };
+  localStorage.setItem('portfolio_data', JSON.stringify(data));
+  alert('저장되었습니다!');
+}
+
+function loadData() {
+  const raw = localStorage.getItem('portfolio_data');
+  if (!raw) return;
+  const d = JSON.parse(raw);
+  const fields = ['name','school','major','grade','goal','herodesc','bio','email','phone','cschool','link'];
+  fields.forEach(k => {
+    const el = document.getElementById('p-'+k);
+    if (el && d[k]) el.value = d[k];
+  });
+  if (d.name) { syncField('info-name',d.name); syncField('nav-name',d.name); document.getElementById('hero-name-text').textContent = d.name; }
+  if (d.school) syncField('info-school',d.school);
+  if (d.major) syncField('info-major',d.major);
+  if (d.grade) syncField('info-grade',d.grade);
+  if (d.goal) syncField('info-goal',d.goal);
+  if (d.herodesc) document.getElementById('hero-desc-text').textContent = d.herodesc;
+  if (d.bio) document.getElementById('about-bio').textContent = d.bio;
+  if (d.email) syncField('contact-email',d.email);
+  if (d.phone) syncField('contact-phone',d.phone);
+  if (d.cschool) syncField('contact-school',d.cschool);
+  if (d.link) syncField('contact-link',d.link);
+}
+
+function sendMsg() {
+  const name = document.getElementById('msg-name').value;
+  const email = document.getElementById('msg-email').value;
+  const body = document.getElementById('msg-body').value;
+  if (!name || !email || !body) { alert('모든 항목을 입력해주세요.'); return; }
+  alert(`메시지가 전송되었습니다!\n\n실제 배포 시 EmailJS 또는 Formspree를 연동하세요.`);
+  document.getElementById('msg-name').value = '';
+  document.getElementById('msg-email').value = '';
+  document.getElementById('msg-body').value = '';
+}
+
+// ─── INIT ───
+buildMediaSlots();
+loadData();
+</script>
+</body>
+</html>
